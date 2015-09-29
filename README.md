@@ -4,6 +4,8 @@ The OAuth for IITB on PHP
 # Usage
 
 ```
+require_once 'sso_handler.php';
+
 $sso_handler = new SSOHandler(CLIENT_ID, CLIENT_SECRET);
 if ($sso_handler->validate_code($_GET) && $sso_handler->validate_state($_GET)) {
   $response = $sso_handler->default_execution($_GET, $REDIRECT_URI, array('basic', 'program'), array('roll_number'));

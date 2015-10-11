@@ -147,7 +147,6 @@ class SSOHandler
       $refresh_token = $access_information_response['refresh_token'];
       $scope = $access_information_response['scope'];
       $provided_scopes = explode(' ', $scope);
-      print_r($access_information_response);
 
       foreach ($required_scopes as $key => $value) {
         if (array_search($value, $provided_scopes) === false) {
@@ -181,6 +180,21 @@ class SSOHandler
         default:
             return array('error' => 'Could Not Parse Json in Response<br/><pre>'. htmlentities($response) .'</pre>');
     }
+  }
+
+  /**
+   * Sends a mail to the user for an access token
+   */
+  public function send_mail($access_token, $subject, $message, $reply_to=array()) {
+    $curl_request = curl_init();
+    curl_setopt($curl_request, CURLOPT_URL, "http://gymkhana.iitb.ac.in/sso/user/api/user/send_mail/");
+    curl_setopt($curl_request, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , 'Authorization: Bearer '.$access_token));
+    curl_setopt($curl_request, CURLOPT_RETURNTRANSFER, false);
+
+    $email_data = array('subject' => $subject, 'message' => $message, 'reply_to' => $reply_to);
+    curl_setopt($curl_request, CURLOPT_POSTFIELDS, json_encode($email_data));
+    curl_exec($curl_request);
+    curl_close ($curl_request);
   }
 }
 ?>

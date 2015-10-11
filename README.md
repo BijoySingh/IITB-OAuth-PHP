@@ -44,3 +44,8 @@ request_access_information($code, $redirect_uri)
 ```
 request_user_information($access_token, $fields)
 ```
+
+* Send an email to a user with an access token
+```
+send_mail($access_token, $subject, $message, $reply_to=array())
+```

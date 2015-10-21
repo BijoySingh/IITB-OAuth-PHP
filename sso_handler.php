@@ -189,7 +189,7 @@ class SSOHandler
     $curl_request = curl_init();
     curl_setopt($curl_request, CURLOPT_URL, "http://gymkhana.iitb.ac.in/sso/user/api/user/send_mail/");
     curl_setopt($curl_request, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , 'Authorization: Bearer '.$access_token));
-    curl_setopt($curl_request, CURLOPT_RETURNTRANSFER, false);
+    curl_setopt($curl_request, CURLOPT_RETURNTRANSFER, true);
 
     $email_data = array('subject' => $subject, 'message' => $message, 'reply_to' => $reply_to);
     curl_setopt($curl_request, CURLOPT_POSTFIELDS, json_encode($email_data));

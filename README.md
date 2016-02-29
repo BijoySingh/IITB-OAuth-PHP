@@ -89,7 +89,7 @@ if ($sso_handler->validate_code($_GET) && $sso_handler->validate_state($_GET)) {
 }
 ```
 
-If you dont have a necessary state, the validate_state can be skipped, if you do, you can use it ass follows
+If you dont have a necessary state, the validate_state can be skipped, if you do, you can use it as follows
 ```$sso_handler->validate_state($_GET, true, $options)```
 
 So, thanks to the default execution function, all the details happen without you needing to do anything. Now, lets see what you get when the execution finishes.
@@ -107,3 +107,15 @@ If no error occurs, the response will contain these 2 arrays.
 }
 ```
 You will mostly need will be in the array ```$response['user_information']```.
+
+You are now done, you can use this data as you like. Here's a simple code to handle the 2 possible responses:
+```
+  if (!isset($response['error']) && isset($response['access_information']) && isset($response['user_information'])) {
+    if ($_GET['state'] === $YOUR_STATE_1) {
+      // Do what you want for this state
+    } ...
+  } else {
+    // Handle the error field
+    ...
+  }
+```

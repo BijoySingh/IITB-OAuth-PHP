@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Iitb-oauth-php by BijoySingh</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Iitb-oauth-php</h1>
+      <h2 class="project-tagline">The OAuth for IITB on PHP</h2>
+      <a href="https://github.com/BijoySingh/IITB-OAuth-PHP" class="btn">View on GitHub</a>
+      <a href="https://github.com/BijoySingh/IITB-OAuth-PHP/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/BijoySingh/IITB-OAuth-PHP/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="iitb-oauth-php" class="anchor" href="#iitb-oauth-php" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>IITB-OAuth-PHP</h1>
+
+<p>The OAuth for IITB on PHP</p>
+
+<h1>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Usage</h1>
+
+<pre><code>require_once 'sso_handler.php';
+
+$sso_handler = new SSOHandler(CLIENT_ID, CLIENT_SECRET);
+if ($sso_handler-&gt;validate_code($_GET) &amp;&amp; $sso_handler-&gt;validate_state($_GET)) {
+  $response = $sso_handler-&gt;default_execution($_GET, $REDIRECT_URI, array('basic', 'program'), array('roll_number'));
+}
+</code></pre>
+
+<h1>
+<a id="common-functions" class="anchor" href="#common-functions" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Common Functions</h1>
+
+<ul>
+<li>Default Execution, most of what you would need to do will be done by this, you wouldn't need to dig into the API
+Generates a response or an error. You can optionally provide the scope of the and fields you need</li>
+</ul>
+
+<pre><code>/**
+ * Does the basic steps and returns either of the responses :
+ * {'error' =&gt; 'error_message'} or
+ * {
+ *   'access_information' =&gt; array returned on getting access token,
+ *   'user_information' =&gt; array returned on getting the user information
+ * }
+ */
+
+default_execution($get, $redirect_uri, $required_scopes=array('basic'), $fields=null)
+</code></pre>
+
+<ul>
+<li>Generates a URL for the Login with SSO button based on your requirements of state, scope and uri</li>
+</ul>
+
+<pre><code>gen_auth_url($response_type='code', $state=null, $scope=null, $redirect_uri=null)
+</code></pre>
+
+<ul>
+<li>Requests for access information i.e. access_token, refresh_token, etc.</li>
+</ul>
+
+<pre><code>request_access_information($code, $redirect_uri)
+</code></pre>
+
+<ul>
+<li>Requests for user information based on the fields that you send</li>
+</ul>
+
+<pre><code>request_user_information($access_token, $fields)
+</code></pre>
+
+<ul>
+<li>Send an email to a user with an access token</li>
+</ul>
+
+<pre><code>send_mail($access_token, $subject, $message, $reply_to=array())
+</code></pre>
+
+<h1>
+<a id="complete-use-case" class="anchor" href="#complete-use-case" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Complete Use Case</h1>
+
+<h2>
+<a id="basic-setup" class="anchor" href="#basic-setup" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Basic Setup</h2>
+
+<ul>
+<li>Create your Application from <a href="http://gymkhana.iitb.ac.in/sso/">http://gymkhana.iitb.ac.in/sso/</a>
+</li>
+<li>Decide what permission scopes you need like <code>$permissions = 'basic profile ldap';</code>
+</li>
+<li>Decide which one of these are necessary for your applications <code>$required_scopes=array('basic');</code>
+</li>
+<li>Also decide what variables you need for sure like <code>$required_fields = array('username', 'email', 'roll_number');</code>
+</li>
+<li>Also decide your redirect url, we will call this is <code>$REDIRECT_URI = 'YOUR_DOMAIN/sso.php';</code>
+</li>
+<li>Decide the state you want to get with the login, like <code>$state = 'user_login';</code>
+</li>
+<li>The response type is mostly always code so <code>$response_type = 'code';</code>
+</li>
+</ul>
+
+<h2>
+<a id="setting-up-the-sso-handler" class="anchor" href="#setting-up-the-sso-handler" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Setting up the SSO Handler</h2>
+
+<p>Get the client ID and the client secret from the console from the <a href="http://gymkhana.iitb.ac.in/sso/">http://gymkhana.iitb.ac.in/sso/</a> section of your app</p>
+
+<pre><code>require_once 'sso_handler.php';
+
+$sso_handler = new SSOHandler($CLIENT_ID, $CLIENT_SECRET);
+</code></pre>
+
+<h2>
+<a id="making-a-request-for-login" class="anchor" href="#making-a-request-for-login" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Making a request for login</h2>
+
+<p>Lets see how to make a login request. We will generate the login link as follows</p>
+
+<pre><code>$url = $sso_handler-&gt;gen_auth_url($response_type, $state, $permissions);
+echo '&lt;a href="'.$url.'"&gt;Sign In&lt;/a&gt;';
+</code></pre>
+
+<p>This allows for you to generate the login button in the UI you like. 
+Another way to setup a login link is using the standard button. (See the SSO reference). You might still use the <code>gen_auth_url</code> function.</p>
+
+<h2>
+<a id="handling-a-response" class="anchor" href="#handling-a-response" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Handling a response</h2>
+
+<p>Now that you set a redirect link in your application details in the SSO console to <code>YOUR_DOMAIN/sso.php</code>, when the login process is completed the details will be redirected to this link. Lets see what you can do here</p>
+
+<pre><code>require_once 'sso_handler.php';
+
+$sso_handler = new SSOHandler(CLIENT_ID, CLIENT_SECRET);
+if ($sso_handler-&gt;validate_code($_GET) &amp;&amp; $sso_handler-&gt;validate_state($_GET)) {
+  $response = $sso_handler-&gt;default_execution($_GET, $REDIRECT_URI, $required_scopes, $required_fields);
+}
+</code></pre>
+
+<p>If you dont have a necessary state, the validate_state can be skipped, if you do, you can use it as follows
+<code>$sso_handler-&gt;validate_state($_GET, true, $options)</code></p>
+
+<p>So, thanks to the default execution function, all the details happen without you needing to do anything. Now, lets see what you get when the execution finishes.</p>
+
+<p>If an error occurs this will happen</p>
+
+<pre><code>{'error' =&gt; 'error_message'} 
+</code></pre>
+
+<p>If no error occurs, the response will contain these 2 arrays.</p>
+
+<pre><code>{
+  'access_information' =&gt; array returned on getting access token,
+  'user_information' =&gt; array returned on getting the user information
+}
+</code></pre>
+
+<p>You will mostly need will be in the array <code>$response['user_information']</code>.</p>
+
+<p>You are now done, you can use this data as you like. Here's a simple code to handle the 2 possible responses:</p>
+
+<pre><code>  if (!isset($response['error']) &amp;&amp; isset($response['access_information']) &amp;&amp; isset($response['user_information'])) {
+    if ($_GET['state'] === $YOUR_STATE_1) {
+      // Do what you want for this state
+    } ...
+  } else {
+    // Handle the error field
+    ...
+  }
+</code></pre>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/BijoySingh/IITB-OAuth-PHP">Iitb-oauth-php</a> is maintained by <a href="https://github.com/BijoySingh">BijoySingh</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>

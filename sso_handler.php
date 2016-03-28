@@ -39,15 +39,19 @@ class SSOHandler
 {
   private $client_id = 0;
   private $client_secret = 0;
+  private $base_url = 'https://gymkhana.iitb.ac.in/sso';
 
-  public function __construct($client_id, $client_secret) {
+  public function __construct($client_id, $client_secret, $base_url=null) {
     $this->client_id = $client_id;
     $this->client_secret = $client_secret;
+    if ($base_url !== null) {
+      $this->base_url = $base_url;
+    }
   }
 
   // generates a url which you can use to set as the link for the button
   public function gen_auth_url($response_type='code', $state=null, $scope=null, $redirect_uri=null) {
-    $url = 'http://gymkhana.iitb.ac.in/sso/oauth/authorize/' .
+    $url = $this->base_url . '/oauth/authorize/' .
       '?client_id=' . $this->client_id .
       '&response_type=' . $response_type;
     if ($state !== null) {
@@ -96,7 +100,7 @@ class SSOHandler
     $credentials = $this->client_id . ":" . $this->client_secret;
 
     $curl_request = curl_init();
-    curl_setopt($curl_request, CURLOPT_URL,"http://gymkhana.iitb.ac.in/sso/oauth/token/");
+    curl_setopt($curl_request, CURLOPT_URL, $this->base_url . "/oauth/token/");
     curl_setopt($curl_request, CURLOPT_USERPWD, $credentials);
     curl_setopt($curl_request, CURLOPT_POST, 1);
     curl_setopt($curl_request, CURLOPT_POSTFIELDS, http_build_query(
@@ -123,7 +127,7 @@ class SSOHandler
    */
   public function request_user_information($access_token, $fields) {
     $curl_request = curl_init();
-    curl_setopt($curl_request, CURLOPT_URL, "http://gymkhana.iitb.ac.in/sso/user/api/user/".$fields);
+    curl_setopt($curl_request, CURLOPT_URL, $this->base_url . "/user/api/user/".$fields);
     curl_setopt($curl_request, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , 'Authorization: Bearer '.$access_token));
     curl_setopt($curl_request, CURLOPT_RETURNTRANSFER, true);
     $response = curl_exec($curl_request);
@@ -187,7 +191,7 @@ class SSOHandler
    */
   public function send_mail($access_token, $subject, $message, $reply_to=array()) {
     $curl_request = curl_init();
-    curl_setopt($curl_request, CURLOPT_URL, "http://gymkhana.iitb.ac.in/sso/user/api/user/send_mail/");
+    curl_setopt($curl_request, CURLOPT_URL, $this->base_url . "/user/api/user/send_mail/");
     curl_setopt($curl_request, CURLOPT_HTTPHEADER, array('Content-Type: application/json' , 'Authorization: Bearer '.$access_token));
     curl_setopt($curl_request, CURLOPT_RETURNTRANSFER, true);
 
